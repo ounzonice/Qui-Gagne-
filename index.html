@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qui gagne ?</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: black;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.container {
+  background: #222;
+  border: 4px solid orange;
+  border-radius: 20px;
+  padding: 25px;
+  max-width: 900px;
+  width: 90%;
+  box-shadow: 0 0 25px orange;
+}
+
+/* BARRE HAUTE */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* MANCHES */
+#manche {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: orange;
+  text-shadow: 0 0 5px orange, 0 0 15px orange, 0 0 30px orange;
+  position: relative;
+  top: -76px;
+}
+
+/* LOGO */
+.logo {
+  width: 140px;
+  position: relative;
+  top: -56px;
+}
+
+/* ===== SINGLE ENCADRÉ ===== */
+.single-box {
+  text-align: center;
+  padding: 15px;
+  border: 3px solid orange;
+  border-radius: 18px;
+  box-shadow: 0 0 20px orange;
+}
+
+.single-box .single-title {
+  font-size: 1.7rem;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.single-box img {
+  width: 170px;
+  height: 170px;
+  object-fit: cover;
+  border-radius: 18px;
+}
+
+/* ===== BARRE DE PROGRESSION ===== */
+.progress-container {
+  width: 100%;
+  height: 14px;
+  background: #111;
+  border-radius: 10px;
+  margin: 25px auto 10px;
+  border: 2px solid orange;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, orange, gold);
+  transition: width 0.4s ease;
+}
+
+/* BATTLE */
+.battle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 35px;
+  margin-top: 20px;
+}
+
+/* CARTES */
+.card {
+  width: 240px;
+  border-radius: 15px;
+  overflow: hidden;
+  background: #111;
+  transition: 0.4s;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 30px orange;
+}
+
+/* MP3 */
+.audio-preview {
+  width: 90%;
+  margin: 10px auto;
+  display: block;
+  filter: invert(1);
+}
+
+/* IMAGE ARTISTE */
+.card img {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+}
+
+/* NOM */
+.card-name {
+  padding: 12px;
+  font-size: 1.2rem;
+  background: black;
+  text-align: center;
+}
+
+/* ÉTATS */
+.card.selected {
+  transform: scale(1.25);
+  animation: greenBlink 0.4s infinite alternate;
+}
+
+.card.loser {
+  transform: scale(0.85);
+  filter: grayscale(80%);
+  opacity: 0.6;
+}
+
+.card.disabled {
+  pointer-events: none;
+}
+
+/* VS */
+#vs {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: black;
+  border: 3px solid orange;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  font-weight: bold;
+}
+
+@keyframes greenBlink {
+  from { box-shadow: 0 0 15px lime; }
+  to { box-shadow: 0 0 40px lime; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- HAUT -->
+  <div class="top-bar">
+    <div id="manche">Manche 1/16</div>
+
+    <div class="single-box">
+      <div class="single-title" id="singleTitle"></div>
+      <img id="singleImage">
+    </div>
+
+    <img src="logo.png" class="logo" alt="Logo">
+  </div>
+
+  <!-- PROGRESSION -->
+  <div class="progress-container">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <!-- BATTLE -->
+  <div class="battle">
+    <div class="card" id="left">
+      <audio class="audio-preview" controls></audio>
+      <img>
+      <div class="card-name"></div>
+    </div>
+
+    <div id="vs">VS</div>
+
+    <div class="card" id="right">
+      <audio class="audio-preview" controls></audio>
+      <img>
+      <div class="card-name"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- SON DE VALIDATION -->
+<audio id="clickSound" src="valide.mp3" preload="auto"></audio>
+
+<script>
+const manches = [
+  {
+    leftName: "Alpha Wann",
+    leftFile: "alpha wann",
+    rightName: "Freeze Corleone",
+    rightFile: "freeze corleone",
+    singleTitle: "Freeze Corleone - Rap catéchisme feat. Alpha Wann",
+    singleImage: "cover1.jpg"
+  },
+  {
+    leftName: "SDM",
+    leftFile: "sdm",
+    rightName: "Werenoi",
+    rightFile: "werenoi",
+    singleTitle: "SDM - METALLICA feat. Werenoi",
+    singleImage: "cover2.jpg"
+  },
+  {
+    leftName: "Hamza",
+    leftFile: "hamza",
+    rightName: "Damso",
+    rightFile: "damso",
+    singleTitle: "Hamza - God Bless feat. Damso",
+    singleImage: "cover3.jpg"
+  },
+  {
+    leftName: "PLK",
+    leftFile: "plk",
+    rightName: "SCH",
+    rightFile: "sch",
+    singleTitle: "PLK - Hier feat. SCH",
+    singleImage: "cover4.jpg"
+  },
+  {
+    leftName: "GIMS",
+    leftFile: "gims",
+    rightName: "Jul",
+    rightFile: "jul",
+    singleTitle: "SDM - AIR FORCE BLANCHE feat. Jul",
+    singleImage: "cover5.jpg"
+  },
+  {
+    leftName: "La Fouine",
+    leftFile: "la fouine",
+    rightName: "L2B",
+    rightFile: "l2b",
+    singleTitle: "La Fouine - Flying Blue feat. L2B",
+    singleImage: "cover6.jpg"
+  },
+  {
+    leftName: "Niska",
+    leftFile: "niska",
+    rightName: "Booba",
+    rightFile: "booba",
+    singleTitle: "Niska - Tubalife feat. Booba",
+    singleImage: "cover7.jpg"
+  },
+  {
+    leftName: "Kaaris",
+    leftFile: "kaaris",
+    rightName: "Kalash Criminel",
+    rightFile: "kalash criminel",
+    singleTitle: "Kaaris - Arrêt du cœur feat. Kalash Criminel",
+    singleImage: "cover8.jpg"
+  },
+  {
+    leftName: "Josman",
+    leftFile: "josman",
+    rightName: "Guy2Bezbar",
+    rightFile: "guy2bezbar",
+    singleTitle: "Josman - POP feat. Guy2Bezbar",
+    singleImage: "cover9.jpg"
+  },
+  {
+    leftName: "Leto",
+    leftFile: "leto",
+    rightName: "Ninho",
+    rightFile: "ninho",
+    singleTitle: "Leto - Macaroni feat. Ninho",
+    singleImage: "cover10.jpg"
+  },
+  {
+    leftName: "Gazo",
+    leftFile: "gazo",
+    rightName: "Tiakola",
+    rightFile: "tiakola",
+    singleTitle: "Gazo - Kassav feat. Tiakola",
+    singleImage: "cover11.jpg"
+  },
+  {
+    leftName: "La Mano 1.9",
+    leftFile: "la mano 1.9",
+    rightName: "Favé",
+    rightFile: "favé",
+    singleTitle: "La Mano 1.9 - No stress feat. Favé",
+    singleImage: "cover12.jpg"
+  },
+  {
+    leftName: "Dinos",
+    leftFile: "dinos",
+    rightName: "Nekfeu",
+    rightFile: "nekfeu",
+    singleTitle: "Dinos - Moins un feat. Nekfeu",
+    singleImage: "cover13.jpg"
+  },
+  {
+    leftName: "Kerchak",
+    leftFile: "kerchak",
+    rightName: "Ziak",
+    rightFile: "ziak",
+    singleTitle: "Kerchak - Peur un feat. Ziak",
+    singleImage: "cover14.jpg"
+  },
+  {
+    leftName: "Koba LaD",
+    leftFile: "koba laD",
+    rightName: "Maes",
+    rightFile: "maes",
+    singleTitle: "Koba LaD - Matin feat. Maes",
+    singleImage: "cover15.jpg"
+  },
+  {
+    leftName: "RnBoi",
+    leftFile: "rnboi",
+    rightName: "Nono La Grinta",
+    rightFile: "nono la grinta",
+    singleTitle: "RnBoi - AVEC MOI feat. Nono La Grinta",
+    singleImage: "cover16.jpg"
+  }
+];
+
+
+let currentManche = 0;
+let voted = false;
+
+const mancheEl = document.getElementById("manche");
+const leftCard = document.getElementById("left");
+const rightCard = document.getElementById("right");
+const progressBar = document.getElementById("progressBar");
+
+const leftAudio = leftCard.querySelector("audio");
+const rightAudio = rightCard.querySelector("audio");
+
+const leftImg = leftCard.querySelector("img");
+const rightImg = rightCard.querySelector("img");
+
+const leftName = leftCard.querySelector(".card-name");
+const rightName = rightCard.querySelector(".card-name");
+
+const singleTitle = document.getElementById("singleTitle");
+const singleImage = document.getElementById("singleImage");
+
+const clickSound = document.getElementById("clickSound");
+
+function loadManche() {
+  voted = false;
+
+  leftCard.className = "card";
+  rightCard.className = "card";
+
+  const m = manches[currentManche];
+
+  leftAudio.src = m.leftFile + ".mp3";
+  rightAudio.src = m.rightFile + ".mp3";
+
+  leftImg.src = m.leftFile + ".jpg";
+  rightImg.src = m.rightFile + ".jpg";
+
+  leftName.textContent = m.leftName;
+  rightName.textContent = m.rightName;
+
+  singleTitle.textContent = m.singleTitle;
+  singleImage.src = m.singleImage;
+
+  mancheEl.textContent = `Manche ${currentManche + 1}/${manches.length}`;
+
+  const progress = ((currentManche + 1) / 20) * 100;
+  progressBar.style.width = progress + "%";
+}
+
+function vote(winner, loser) {
+  if (voted) return;
+  voted = true;
+
+  clickSound.currentTime = 0;
+  clickSound.play();
+
+  leftAudio.pause();
+  rightAudio.pause();
+
+  winner.classList.add("selected");
+  loser.classList.add("loser");
+
+  leftCard.classList.add("disabled");
+  rightCard.classList.add("disabled");
+
+  setTimeout(() => {
+    currentManche++;
+    if (currentManche < manches.length) {
+      loadManche();
+    } else {
+      mancheEl.textContent = "Tournoi terminé 🏆";
+      progressBar.style.width = "100%";
+    }
+  }, 2000);
+}
+
+leftCard.onclick = () => vote(leftCard, rightCard);
+rightCard.onclick = () => vote(rightCard, leftCard);
+
+loadManche();
+</script>
+
+</body>
+</html>
